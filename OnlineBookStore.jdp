@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+    stages {
+        stage('Pull') {
+            steps {
+                git 'https://github.com/shashirajraja/onlinebookstore.git'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'mvn clean package'
+            }
+        }
+        // stage('Test') {
+        //     steps {
+        //         sh '/opt/maven/bin/mvn sonar:sonar   -Dsonar.projectKey=studentapp   -Dsonar.host.url=http://18.218.5.157:9000   -Dsonar.login=sqp_5ee3d60a4ef5e16f18c411af0de0f8e0c9199f6a'
+        //     }
+        // }
+        stage('Test') {
+            steps {
+                withSonarQubeEnv(installationName: 'Sonar', credentialsId: 'sonar-cred') {
+                    sh 'mvn sonar:sonar -Dsonar.projectKey=Bookstore'
+                }           
+            }
+        }
+        stage('QualityGate') {
+            steps {
+                timeout(10) {
+                    waitForQualityGate abortPipeline: true, credentialsId: 'sonar-cred'
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+            deploy adapters: [tomcat9(credentialsId: 'tomcat', path: '', url: 'http://172.31.10.2:8080')], contextPath: '/', war: '**/*.war' }
+        }
+        // stage('Delivery') {
+        //     steps {
+        //         sh 'aws s3 cp target/studentapp-2.0-SNAPSHOT.war s3://cbz-studentapp-bux/'
+        // }
+    }
+}
