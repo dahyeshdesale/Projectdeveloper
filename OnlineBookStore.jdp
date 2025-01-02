@@ -32,7 +32,7 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-            deploy adapters: [tomcat9(credentialsId: 'tomcat-nw', path: '', url: 'http://13.234.67.201:8080')], contextPath: '/', war: '**/*.war' }
+            deploy adapters: [tomcat9(credentialsId: 'tomcat-nw', path: '', url: 'http://13.234.67.201:8080/')], contextPath: '/', war: '**/*.war' }
         }
         // stage('Delivery') {
         //     steps {
